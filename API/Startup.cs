@@ -39,6 +39,13 @@ namespace API
             {
                 opt.UseSqlite(config.GetConnectionString("DafaultConnection"));
             });
+            services.AddCors(opt =>{
+                opt.AddPolicy("CorsPolicy", policy =>
+                {  //允許從localhost:3000發起的任何request
+                   //回傳Response給localhost:3000時會加上CORS header
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,6 +61,8 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("CorsPolicy"); //注意UseCors要接在UseRouting後
 
             app.UseAuthorization();
 
