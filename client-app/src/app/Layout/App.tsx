@@ -1,19 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Container } from 'semantic-ui-react';
 import { Activity } from '../models/activity';
 import NavBar from './NavBar';
 import ActivityDashboard from '../../features/activities/dashbroad/ActivityDashboard';
 import {v4 as uuid} from 'uuid';
+import agent from '../api/agent';
+import LoadingComponent from './LoadingComponent';
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined)
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(()=>{
-    axios.get<Activity[]>("http://localhost:5000/api/activities").then(response => {
-      setActivities(response.data);
+    agent.Activities.list().then(response => {
+      let activities: Activity[] = [];
+      response.forEach(activity => {
+        activity.date = activity.date.split('T')[0]; //取得日期部分
+        activities.push(activity);
+      })
+      setActivities(activities);
+      setLoading(false);
     })
   }, []) //加入dependency參數，避免useEffect重複呼叫setActivities
 
@@ -35,18 +44,36 @@ function handleFormClose(){
 }
 
 function handleCreateOrEditActivity(activity: Activity){
+  setSubmitting(true);
   //activity.id有值 ==> Edit ==> 以id找出舊的activity並刪除他，把修改後的activity加入activities陣列當中
   //activity.id沒有值==> Create ==> 給予新activity一個ID後，將新activity加入activities陣列當中
-  activity.id ? 
-  setActivities([...activities.filter(x=>x.id !== activity.id), activity])
-  : setActivities([...activities, {...activity, id: uuid()}]);
-  setEditMode(false);
-  setSelectedActivity(activity);
+  if(activity.id){
+    agent.Activities.update(activity).then(() =>{
+      setActivities([...activities.filter(x=>x.id !== activity.id), activity])
+      setEditMode(false);
+      setSelectedActivity(activity);
+      setSubmitting(false);
+    })
+  }else{
+    activity.id = uuid();
+    agent.Activities.create(activity).then(() => {
+      setActivities([...activities, activity]);
+      setEditMode(false);
+      setSelectedActivity(activity);
+      setSubmitting(false);
+    })
+  }
 }
 
 function handleDeleteActivity(id: string){
-  setActivities([...activities.filter(x=>x.id !== id)]);
+  setSubmitting(true);
+  agent.Activities.delete(id).then(() => {
+    setActivities([...activities.filter(x=>x.id !== id)]);
+    setSubmitting(false);
+  })
 }
+
+if(loading) return <LoadingComponent content='Loading app...' />
 
   return (
     //<></>等同於<Fragment></Fragment>
@@ -62,7 +89,9 @@ function handleDeleteActivity(id: string){
         openForm = {handleFormOpen}
         closeForm = {handleFormClose}
         createOrEdit = {handleCreateOrEditActivity}
-        deleteActivity={handleDeleteActivity}/>
+        deleteActivity={handleDeleteActivity}
+        submitting = {submitting}
+        />
       </Container>
         
     </>
