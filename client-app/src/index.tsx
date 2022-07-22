@@ -3,12 +3,16 @@ import ReactDOM from 'react-dom/client';
 import './app/Layout/styles.css';
 import App from './app/Layout/App';
 import reportWebVitals from './reportWebVitals';
+import { store, StoreContext } from './app/stores/store';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
+  //將Context提供給App
+  <StoreContext.Provider value={store}>
     <App />
+  </StoreContext.Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
