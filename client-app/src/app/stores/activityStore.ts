@@ -20,6 +20,17 @@ export default class ActivityStore {
         );
     }
 
+    get groupedActivity(){
+        //組裝出由array組成的object。object的key為activity.date，將同日期的activity組成一組
+        return Object.entries(
+            this.activitiesByDate.reduce((activities, activity) => {
+                const date = activity.date;
+                activities[date] = activities[date] ? [...activities[date], activity] : [activity];
+                return activities;
+            }, {} as {[key:string]: Activity[]})
+        )
+    }
+
     loadActivities = async () => {
         this.loadingInitial = true;
         try
