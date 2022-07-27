@@ -20,6 +20,8 @@ using Application.Core;
 using API.Extensions;
 using FluentValidation.AspNetCore;
 using API.Middleware;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace API
 {
@@ -35,10 +37,15 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddFluentValidation(config => {
+            services.AddControllers(opt => {
+                var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+                opt.Filters.Add(new AuthorizeFilter(policy));
+            })
+                .AddFluentValidation(config => {
                 config.RegisterValidatorsFromAssemblyContaining<Create>(); //註明Validation的來源(assembly)
             });
             services.AddApplicationServices(config);
+            services.AddIdentityServices(config);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +66,7 @@ namespace API
 
             app.UseCors("CorsPolicy"); //注意UseCors要接在UseRouting後
 
+            app.UseAuthentication(); //要加在UseAuthorization之前
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

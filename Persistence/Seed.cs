@@ -3,13 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain;
+using Microsoft.AspNetCore.Identity;
 
 namespace Persistence
 {
     public class Seed
     {
-        public static async Task SeedData(DataContext context)
+        public static async Task SeedData(DataContext context, UserManager<AppUser> userManager)
         {
+            if(!userManager.Users.Any())
+            {
+                var users = new List<AppUser>
+                {
+                    new AppUser{DisplyName = "Bob", UserName="bob", Email="bob@test.com"},
+                    new AppUser{DisplyName = "Tom", UserName="tom", Email="tom@test.com"},
+                    new AppUser{DisplyName = "Jane", UserName="jane", Email="jane@test.com"},
+                };
+
+                foreach (var user in users)
+                {
+                    await userManager.CreateAsync(user, "P@ssw0rd"); //自動SaveChange新增的使用者資料
+                }
+            }
             if (context.Activities.Any()) return;
             
             var activities = new List<Activity>
