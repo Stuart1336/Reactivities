@@ -1,8 +1,10 @@
+import { UserFormValues } from './../models/user';
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { request } from "http";
 import { toast } from "react-toastify";
 import { history } from "../..";
 import { Activity } from "../models/activity";
+import { User } from "../models/user";
 import { store } from "../stores/store";
 
 //網頁載入時，人為製造些許delay
@@ -13,6 +15,15 @@ const sleep = (delay: number) => {
 }
 
 axios.defaults.baseURL = 'http://localhost:5000/api';
+
+axios.interceptors.request.use(config => {
+    const token = store.commonStore.token;
+
+    //如果前端已有token，將他放到config(resquest).headers的Authorization中
+    if(token) config.headers!.Authorization = `Bearer ${token}`;
+
+    return config;
+})
 
 axios.interceptors.response.use(async response => {
     await sleep(1000);
@@ -72,8 +83,17 @@ const Activities = {
     delete: (id: string) => requests.del<void>(`/activities/${id}`)
 }
 
+//取得登入者、登入、註冊方法
+const Account = {
+    current: () => requests.get<User>('/account'),
+    login: (user: UserFormValues) => requests.post<User>('/account/login', user),
+    register: (user: UserFormValues) => requests.post<User>('/account/register', user)
+}
+
+
 const agent = {
-    Activities
+    Activities,
+    Account
 }
 
 export default agent;

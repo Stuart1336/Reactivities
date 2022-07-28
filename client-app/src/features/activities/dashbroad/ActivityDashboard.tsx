@@ -15,7 +15,7 @@ export default observer(function ActivityDashboard(){
       if(activityRegistry.size <= 1) loadActivities();
     }, [activityRegistry.size, loadActivities]) //加入dependency參數，避免useEffect重複呼叫setActivities
   
-  if(activityStore.loadingInitial) return <LoadingComponent content='Loading app...' />
+  if(activityStore.loadingInitial) return <LoadingComponent content='Loading activities...' />
 
     return(
         <Grid>
