@@ -1,5 +1,7 @@
 using Application.Activities;
 using Application.Core;
+using Application.Interfaces;
+using Infrastructure.Security;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -30,6 +32,10 @@ namespace API.Extensions
             //告訴mediator handler的所在位置(Assembly)
             services.AddMediatR(typeof(List.Handler).Assembly);
             services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+            
+            //註冊IUserAccessor類型的UserAccessor實作，讓整個專案都能使用UserAccessor
+            //IUserAccessor: 注入的類型/ UserAccessor: 實作的類別
+            services.AddScoped<IUserAccessor, UserAccessor>();
 
             return services;
         }

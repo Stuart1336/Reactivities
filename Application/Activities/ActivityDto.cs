@@ -1,8 +1,8 @@
-using System;
+using Application.Profiles;
 
-namespace Domain
+namespace Application.Activities
 {
-    public class Activity
+    public class ActivityDto
     {
         public Guid Id { get; set; }
 
@@ -18,10 +18,10 @@ namespace Domain
 
         public string Venue { get; set; }
 
+        public string HostUsername { get; set; }
+
         public bool IsCancelled { get; set; }
 
-        //新增Activity時，EntityFrameWork不會幫我們新增Attendee
-        //Attendee會是null，此時無法給值 ==> 給予Attendee初始值，讓Attendee為一空陣列
-        public ICollection<ActivityAttendee> Attendees { get; set; } = new List<ActivityAttendee>();
+        public ICollection<Profile> Attendees { get; set; }
     }
 }
