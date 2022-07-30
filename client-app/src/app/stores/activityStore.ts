@@ -1,6 +1,8 @@
+import { Profile } from './../models/profile';
+import { store } from './store';
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../api/agent";
-import { Activity } from "../models/activity";
+import { Activity, ActivityFormValues } from "../models/activity";
 import {format} from 'date-fns';
 
 export default class ActivityStore {
@@ -74,6 +76,16 @@ export default class ActivityStore {
     }
 
     private setActivity = (activity: Activity) => {
+        const user = store.userStore.user; //取得登入者資訊
+        if(user){
+            //若此登入者有在活動的參加者名單(attendees)上 => activity.isGoing = true
+            activity.isGoing = activity.attendees!.some(
+                x => x.username === user.username
+            )
+            activity.isHost = activity.hostUsername === user.username;
+            activity.host = activity.attendees?.find(x=> x.username === activity.hostUsername);
+        }
+
         activity.date = new Date(activity.date!);
         this.activityRegistry.set(activity.id, activity);
     }
@@ -86,41 +98,42 @@ export default class ActivityStore {
         this.loadingInitial = state;
     }
 
-    createActivity = async (activity: Activity) => {
-        this.loading = true;
-
+    createActivity = async (activity: ActivityFormValues) => {
+        const user = store.userStore.user;
+        const attendee = new Profile(user!);
         try{
             await agent.Activities.create(activity);
+            const newActivity = new Activity(activity);
+
+            //ActivityFormValues中沒有hostUsername和attendees
+            //要自己補上
+            newActivity.hostUsername = user!.username;
+            newActivity.attendees = [attendee];
+            this.setActivity(newActivity);
             runInAction(() => {
-                this.activityRegistry.set(activity.id, activity);
-                this.selectedActivity = activity;
-                this.editMode = false;
-                this.loading = false;
+                this.selectedActivity = newActivity;
             })
         }catch(error){
             console.log(error);
-            runInAction(() => {
-                this.loading = false;
-            })
         }
     }
 
-    updateActivity = async (activity: Activity) => {
-        this.loading = true;
+    updateActivity = async (activity: ActivityFormValues) => {
         try{
             await agent.Activities.update(activity);
 
             runInAction(() => {
-                this.activityRegistry.set(activity.id, activity);
-                this.selectedActivity = activity;
-                this.editMode = false;
-                this.loading = false;
+                if(activity.id){
+                    //用seperate opration更新activity屬性
+                    //更新的屬性會自動覆寫舊有屬性??
+                    let updateActivity = {...this.getActivity(activity.id), ...activity}
+                    this.activityRegistry.set(activity.id, updateActivity as Activity)
+                    this.selectedActivity = updateActivity as Activity;
+                }
+                
             })
         }catch(error){
             console.log(error);
-            runInAction(() => {
-                this.loading = false;
-            })
         }
     }
 
@@ -139,6 +152,47 @@ export default class ActivityStore {
             runInAction(() => {
                 this.loading = false;
             })
+        }
+    }
+    updateAttendance = async () => {
+        const user = store.userStore.user;
+        this.loading = true;
+
+        try
+        {
+            await agent.Activities.attend(this.selectedActivity!.id);
+            runInAction(() => {
+                //若user有參加該活動 => 把user從該活動的參加者名單剔除，isGoing改為false
+                if(this.selectedActivity?.isGoing){
+                    this.selectedActivity.attendees = 
+                        this.selectedActivity.attendees?.filter(x => x.username !== user?.username);
+                    this.selectedActivity.isGoing = false;
+                }else{
+                    const attendee = new Profile(user!);
+                    this.selectedActivity?.attendees?.push(attendee);
+                    this.selectedActivity!.isGoing = true;
+                }
+                //set會根據key自動更新map裡的物件
+                this.activityRegistry.set(this.selectedActivity!.id, this.selectedActivity!);
+            })
+
+        }catch(error){
+            console.log(error);
+        }finally{
+            runInAction(() => this.loading = false);
+        }
+    }
+
+    cancelActivityToggle = async () => {
+        this.loading = true;
+
+        try{
+            this.selectedActivity!.isCancelled = !this.selectedActivity?.isCancelled;
+            this.activityRegistry.set(this.selectedActivity!.id, this.selectedActivity!);
+        }catch(error){
+            console.log(error)
+        }finally{
+            runInAction(() => this.loading = false);
         }
     }
 }

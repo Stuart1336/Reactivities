@@ -45,7 +45,7 @@ namespace API.Controllers
         }
 
         [HttpPost("{id}/attend")]
-        public async Task<IActionResult> Attend(Guid id)
+        public async Task<IActionResult> attend(Guid id)
         {
             return HandleResult(await Mediator.Send(new UpdateAttendence.Command{Id = id}));
         }
