@@ -1,6 +1,7 @@
 using Application.Activities;
 using Application.Core;
 using Application.Interfaces;
+using Infrastructure.Photos;
 using Infrastructure.Security;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,8 @@ namespace API.Extensions
             //註冊IUserAccessor類型的UserAccessor實作，讓整個專案都能使用UserAccessor
             //IUserAccessor: 注入的類型/ UserAccessor: 實作的類別
             services.AddScoped<IUserAccessor, UserAccessor>();
+            services.AddScoped<IPhotoAccessor, PhotoAccessor>();
+            services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
 
             return services;
         }
