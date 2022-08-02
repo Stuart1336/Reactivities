@@ -34,6 +34,23 @@ namespace API.Extensions
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        opt.Events = new JwtBearerEvents
+                        {
+                            //當使用者連線上SignalR Hub
+                            //(SignalR發request時沒辦法帶header藏token) ==> 透過queryString傳token(做身分驗證)
+                            OnMessageReceived = context =>
+                            {
+                                //透過queryString取得jwt token
+                                var accessToken = context.Request.Query["access_token"];
+                                var path = context.HttpContext.Request.Path;
+                                if(!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat")))
+                                {
+                                    context.Token = accessToken;
+                                }
+
+                                return Task.CompletedTask;
+                            }
+                        };
                     });
                 service.AddAuthorization(opt => {
                     opt.AddPolicy("IsActivityHost", policy => {

@@ -27,7 +27,11 @@ namespace API.Extensions
                 opt.AddPolicy("CorsPolicy", policy =>
                 {  //允許從localhost:3000發起的任何request
                    //回傳Response給localhost:3000時會加上CORS header
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("http://localhost:3000");
+                    policy
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials() //For SignalR Credential
+                        .WithOrigins("http://localhost:3000");
                 });
             });
             //告訴mediator handler的所在位置(Assembly)
@@ -39,6 +43,7 @@ namespace API.Extensions
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
             services.Configure<CloudinarySettings>(config.GetSection("Cloudinary"));
+            services.AddSignalR();
 
             return services;
         }

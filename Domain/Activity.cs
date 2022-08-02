@@ -23,5 +23,7 @@ namespace Domain
         //新增Activity時，EntityFrameWork不會幫我們新增Attendee
         //Attendee會是null，此時無法給值 ==> 給予Attendee初始值，讓Attendee為一空陣列
         public ICollection<ActivityAttendee> Attendees { get; set; } = new List<ActivityAttendee>();
+
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

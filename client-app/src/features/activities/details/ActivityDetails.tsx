@@ -11,12 +11,13 @@ import ActivtiyDetailedChats from "./ActivtiyDetailedChats";
 
 export default observer (function ActivityDetails(){
     const {activityStore} = useStore();
-    const {selectedActivity: activity, loadActivity, loadingInitial} = activityStore
+    const {selectedActivity: activity, loadActivity, loadingInitial, clearSelectedActivity} = activityStore
     const {id} = useParams<{id: string}>();
 
     useEffect(() => {
         if(id) loadActivity(id);
-    },[id,loadActivity]) //dependency: 當id或loadActivity改變時才會觸發useEffect
+        return () => clearSelectedActivity();
+    },[id,loadActivity, clearSelectedActivity]) //dependency: 當id或loadActivity改變時才會觸發useEffect
 
     if(loadingInitial || !activity) return <LoadingComponent />;
 
@@ -25,7 +26,7 @@ export default observer (function ActivityDetails(){
             <Grid.Column width={10}>
                 <ActivityDetailedHeader activity={activity}/>
                 <ActivityDetailedInfo activity={activity}/>
-                <ActivtiyDetailedChats />
+                <ActivtiyDetailedChats activityId={activity.id}/>
             </Grid.Column>
             <Grid.Column width={6}>
                 <ActivityDetailedSidebar activity={activity}/>
