@@ -1,11 +1,10 @@
-using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
-using Microsoft.Extensions.Logging;
 using Application.Core;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Application.Interfaces;
 
 namespace Application.Activities
 {
@@ -17,8 +16,10 @@ namespace Application.Activities
         {
             private readonly DataContext context;
             private readonly IMapper mapper;
-            public Handler(DataContext context, IMapper mapper)
+            private readonly IUserAccessor userAccessor;
+            public Handler(DataContext context, IMapper mapper, IUserAccessor userAccessor)
             {
+                this.userAccessor = userAccessor;
                 this.mapper = mapper;
                 this.context = context;
             }
@@ -29,7 +30,8 @@ namespace Application.Activities
                 //ProjectTo:利用AutoMapper組態，將Activity資料寫進ActivityDto
                 //ProjectTo可避免EF查詢時撈出多餘的欄位
                 var activities = await context.Activities
-                    .ProjectTo<ActivityDto>(mapper.ConfigurationProvider)
+                    .ProjectTo<ActivityDto>(mapper.ConfigurationProvider, 
+                        new {currentUsername = userAccessor.GetUsername()})
                     .ToListAsync();
 
                 return Result<List<ActivityDto>>.Success(activities);
