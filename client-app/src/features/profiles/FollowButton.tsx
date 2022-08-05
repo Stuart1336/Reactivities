@@ -13,7 +13,7 @@ export default observer(function FollowButton({profile}: Props){
     const {updateFollowing, loading} = profileStore;
 
     //自己不能追隨自己
-    if(userStore.user?.username == profile.username) return null
+    if(userStore.user?.username === profile.username) return null
 
     function handleFollow(e: SyntheticEvent, username: string){
         //不停掉submit event，當button被按到時，同一頁的Link會被觸發

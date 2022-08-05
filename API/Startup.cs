@@ -65,6 +65,9 @@ namespace API
 
             app.UseRouting();
 
+            app.UseDefaultFiles(); //到API/wwwroot找index.html
+            app.UseStaticFiles();
+
             app.UseCors("CorsPolicy"); //注意UseCors要接在UseRouting後
 
             app.UseAuthentication(); //要加在UseAuthorization之前
@@ -74,6 +77,7 @@ namespace API
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chat"); //指定ChatHub的路徑(endpoint)
+                endpoints.MapFallbackToController("Index", "Fallback"); //開一個client-app專用的endpoint
             });
         }
     }

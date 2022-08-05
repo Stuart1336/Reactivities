@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 import { store, StoreContext } from './app/stores/store';
 import { Router } from 'react-router-dom';
 import {createBrowserHistory} from 'history'; //將history傳給agent.ts使用
+import ScrollToTop from './app/Layout/ScrollToTop';
 
 export const history = createBrowserHistory();
 
@@ -19,6 +20,7 @@ root.render(
   //將Context提供給App
   <StoreContext.Provider value={store}>
     <Router history={history}>
+      <ScrollToTop />
       <App />
     </Router>
   </StoreContext.Provider>
