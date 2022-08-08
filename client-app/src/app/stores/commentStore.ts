@@ -24,10 +24,8 @@ export default class CommentStore {
             //連線成功，載入相關comment
             this.hubConnection.on("LoadComments", (comments: ChatComment[]) => {
                 runInAction(() => {
-                    //UTC時間尾端會有一個'Z'，但儲存在資料庫的時間資料，尾端不會加'Z'
-                    //==> 從資料庫帶出時間資料後自己補'Z'
                     comments.forEach(comment => {
-                        comment.createAt = new Date(comment.createAt + 'Z');
+                        comment.createAt = new Date(comment.createAt);
                     })
                     this.comments = comments
                 });
@@ -36,7 +34,6 @@ export default class CommentStore {
 
             //上傳新comment，通知同Group成員
             this.hubConnection.on('ReceiveComment', (comment: ChatComment) => {
-                //SignalR的時間資料，尾端會自行加上'Z'
                 runInAction(() => {
                     comment.createAt = new Date(comment.createAt);
                     this.comments.unshift(comment) //unshift將新增的comment放到array最前端

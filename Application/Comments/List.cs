@@ -32,6 +32,10 @@ namespace Application.Comments
                     .ProjectTo<CommentDto>(mapper.ConfigurationProvider)
                     .ToListAsync();
 
+                    foreach(var item in comments){
+                        item.CreateAt = item.CreateAt.ToUniversalTime();
+                    }
+
                 return Result<List<CommentDto>>.Success(comments);
             }
         }
